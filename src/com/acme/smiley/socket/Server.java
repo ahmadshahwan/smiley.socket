@@ -26,17 +26,19 @@ public class Server {
     public static void main(String[] args) {
         System.out.printf("Starting socket server on port %d.\n", PORT);
         try (ServerSocket server = new ServerSocket(PORT)) {
-            try (
-                    Socket socket = server.accept();
-                    Scanner scanner = new Scanner(socket.getInputStream());
-                    PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
-                System.out.printf("Connection established with %s.", socket.getInetAddress());
-                String line;
-                do {
-                    line = scanner.nextLine();
-                    out.println(line.replace(":)", "☺"));
-                } while (!line.toLowerCase().startsWith("bye"));
-                System.out.printf("Closing connection with %s...\n", socket.getInetAddress());
+            while (!Thread.interrupted()) {
+                try (
+                        Socket socket = server.accept();
+                        Scanner scanner = new Scanner(socket.getInputStream());
+                        PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+                    System.out.printf("Connection established with %s.", socket.getInetAddress());
+                    String line;
+                    do {
+                        line = scanner.nextLine();
+                        out.println(line.replace(":)", "☺"));
+                    } while (!line.toLowerCase().startsWith("bye"));
+                    System.out.printf("Closing connection with %s...\n", socket.getInetAddress());
+                }
             }
         } catch (IOException e) {
             System.err.println(e.getMessage());
