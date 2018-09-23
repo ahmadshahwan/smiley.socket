@@ -27,19 +27,31 @@ public class Server {
         System.out.printf("Starting socket server on port %d.\n", PORT);
         try (ServerSocket server = new ServerSocket(PORT)) {
             while (!Thread.interrupted()) {
-                try (
-                        Socket socket = server.accept();
-                        Scanner scanner = new Scanner(socket.getInputStream());
-                        PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
-                    System.out.printf("Connection established with %s.", socket.getInetAddress());
-                    String line;
-                    do {
-                        line = scanner.nextLine();
-                        out.println(line.replace(":)", "☺"));
-                    } while (!line.toLowerCase().startsWith("bye"));
-                    System.out.printf("Closing connection with %s...\n", socket.getInetAddress());
-                }
+                final Socket socket = server.accept();
+                new Thread(() -> serve(socket)).start();
             }
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+    }
+
+    /**
+     * Serve a particular client, until they provide a goodbye sentence.
+     *
+     * @param socket    client's socket 
+     */
+    private static void serve(Socket socket) {
+        try (
+                Socket ignored = socket;        // Used to insure socket closure
+                Scanner scanner = new Scanner(socket.getInputStream());
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+            System.out.printf("Connection established with %s.", socket.getInetAddress());
+            String line;
+            do {
+                line = scanner.nextLine();
+                out.println(line.replace(":)", "☺"));
+            } while (!line.toLowerCase().startsWith("bye"));
+            System.out.printf("Closing connection with %s...\n", socket.getInetAddress());
         } catch (IOException e) {
             System.err.println(e.getMessage());
         }
